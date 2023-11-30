@@ -12,17 +12,15 @@ fn write_new_day_rs(day: &str) {
         Err(e) => println!("Uh oh: {}", e),
     }
 
-    // create the rust file
-    let file_path = format!("src/days/{}/{}.rs", day, day);
-
     // the input path for todays puzzle input
     let input_path = format!("src/days/{}/input.txt", day);
     let todays_code = format!(
         r#"
 use crate::helpers::get_input::*;
 
+#[allow(dead_code)]
 pub fn run() {{
-    // get the input (todays problem) and get started!
+    // batter up
     let input = get_input("{}");
 
     println!("todays input: \n{{}}", input);
@@ -31,13 +29,22 @@ pub fn run() {{
         input_path
     );
 
+    // write puzzle one
+    let file_path = format!("src/days/{}/one.rs", day);
+    match fs::write(&file_path, &todays_code) {
+        Ok(_) => {}
+        Err(e) => println!("Uh oh: {}", e),
+    }
+
+    // write puzzle two
+    let file_path = format!("src/days/{}/two.rs", day);
     match fs::write(&file_path, &todays_code) {
         Ok(_) => {}
         Err(e) => println!("Uh oh: {}", e),
     }
 
     // also write to the mod.rs for it
-    let mod_path = format!("pub mod {};", day);
+    let mod_path = format!("pub mod one;\npub mod two;\n",);
     match fs::write(&format!("{}/mod.rs", dir_path), &mod_path) {
         Ok(_) => {}
         Err(e) => println!("Uh oh: {}", e),
@@ -56,6 +63,7 @@ pub fn run() {{
         Ok(contents) => {
             // if it doesn't already, otherwise catchhyyaaa
             if !contents.contains(&mod_path) {
+                let mod_path = format!("pub mod {};\n", day);
                 let new_contents = format!("{}\n{}", contents, mod_path);
                 match fs::write(mod_file_path, new_contents) {
                     Ok(_) => {}
@@ -135,19 +143,27 @@ pub fn run(day: &str) {
                 let day_as_word = get_day_as_word(day);
 
                 // check that this hasn't been inserted in main.rs already
-                if contents.contains(&format!("\"{}\" =>", day)) {
+                if contents.contains(&format!("{}::one::run();", day_as_word)) {
                     println!("{} is already in main.rs, doofus!!", day);
                     return;
                 }
 
-                // insert the new days runner above the search term
-                let new_contents = contents.replace(
-                    search_term,
-                    &format!(
-                        "\"{}\" => {}::{}::run(),\n            {}",
-                        day, day_as_word, day_as_word, search_term
-                    ),
+                let todays_code = format!(
+                    r#"
+            "{}" => {{
+                if args[2].as_str() == "1" {{
+                    {}::one::run();
+                }} else {{
+                    {}::two::run();
+                }}
+            }}
+            {}
+            "#,
+                    day, day_as_word, day_as_word, search_term
                 );
+
+                // insert the new days runner above the search term
+                let new_contents = contents.replace(search_term, &todays_code);
 
                 // write the new day file and update mod.rs
                 write_new_day_rs(&day_as_word);
