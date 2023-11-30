@@ -1,6 +1,6 @@
 # Advent of Code 2023 Rust Template
 
-My template/solutions repo for the Advent of Code 2023. Click the `Use as template` button to get your own up and running? or don't - up to you.
+My template/solutions repo for the Advent of Code 2023. Click the `Use this template` button to get your own up and running? or don't - up to you.
 
 ## Usage
 
